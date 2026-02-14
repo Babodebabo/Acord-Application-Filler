@@ -3,8 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ACORD Form Filler</title>
+<title>ACORD Auto-Fill | AI-Powered Insurance Form Extraction</title>
+<meta name="description" content="ACORD Auto-Fill instantly extracts insurance data from dec pages, emails, Excel spreadsheets, and quotes and maps it to the correct ACORD form fields. Supports Homeowners, Auto, Commercial, Workers Comp, and more.">
+<meta name="keywords" content="ACORD form filler, insurance form automation, ACORD 25, ACORD 80, ACORD 90, ACORD 125, ACORD 126, ACORD 130, ACORD 137, ACORD 140, dec page extraction, insurance data entry, AI insurance tool, certificate of insurance, auto-fill ACORD, Excel to ACORD">
+<meta name="author" content="ACORD Auto-Fill">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://babodebabo.github.io/Acord-Application-Filler/">
+<meta property="og:title" content="ACORD Auto-Fill | AI-Powered Insurance Form Extraction">
+<meta property="og:description" content="Upload dec pages, emails, Excel files, or quotes. AI extracts and maps to the right ACORD fields in seconds.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://babodebabo.github.io/Acord-Application-Filler/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="ACORD Auto-Fill">
+<meta name="twitter:description" content="AI-powered ACORD form extraction. Upload a document, get fields filled instantly.">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- SheetJS for reading Excel files -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 :root{--bg:#0a0f1a;--card:#111827;--card2:#161f33;--border:#1e2d44;--accent:#3b82f6;--accent2:#2563eb;--glow:rgba(59,130,246,.12);--green:#10b981;--yellow:#f59e0b;--red:#ef4444;--t1:#e2e8f0;--t2:#94a3b8;--t3:#64748b;--r:10px}
@@ -21,8 +35,23 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--t1);min-h
 .badge{display:inline-flex;padding:3px 9px;border-radius:99px;font-size:10px;font-weight:600}
 .badge-g{background:rgba(16,185,129,.1);color:var(--green)}.badge-d{background:rgba(100,116,139,.12);color:var(--t3)}
 .wrap{max-width:880px;margin:0 auto;padding:28px 20px}.center{text-align:center}.mb{margin-bottom:24px}
-
-/* Setup overlay */
+.gate-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.9);z-index:300;display:flex;align-items:center;justify-content:center;padding:20px}
+.gate-box{background:var(--card);border:1px solid var(--border);border-radius:16px;max-width:480px;width:100%;padding:40px;text-align:center}
+.gate-box h1{font-size:28px;font-weight:800;margin-bottom:4px}
+.gate-box .tagline{color:var(--accent);font-size:14px;font-weight:600;margin-bottom:8px}
+.gate-box .sub{color:var(--t2);font-size:13px;margin-bottom:28px;line-height:1.5}
+.gate-features{text-align:left;background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:16px 20px;margin-bottom:24px}
+.gate-features .gf{display:flex;align-items:center;gap:10px;padding:6px 0;font-size:13px;color:var(--t2)}
+.gate-features .gf span:first-child{color:var(--green);font-size:16px}
+.gate-buy{display:inline-block;width:100%;padding:14px;background:var(--green);color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:16px;transition:background .15s;text-decoration:none;text-align:center}
+.gate-buy:hover{background:#059669}
+.gate-divider{display:flex;align-items:center;gap:12px;margin-bottom:16px;color:var(--t3);font-size:12px}
+.gate-divider::before,.gate-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.gate-code-row{display:flex;gap:8px}
+.gate-code-row input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--t1);font-size:14px;font-family:monospace;outline:none}
+.gate-code-row input:focus{border-color:var(--accent)}
+.gate-code-row button{padding:10px 20px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;white-space:nowrap}
+.gate-status{margin-top:10px;font-size:12px;min-height:18px}
 .setup-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.85);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px}
 .setup-box{background:var(--card);border:1px solid var(--border);border-radius:16px;max-width:520px;width:100%;padding:36px;position:relative}
 .setup-box h2{font-size:22px;font-weight:800;margin-bottom:6px}
@@ -40,7 +69,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--t1);min-h
 .setup-actions .btn{flex:1;justify-content:center;padding:12px;font-size:14px}
 .key-saved{display:flex;align-items:center;gap:8px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.25);border-radius:var(--r);padding:10px 14px;margin-bottom:16px;font-size:12px;color:var(--green)}
 .key-saved button{background:none;border:none;color:var(--t3);cursor:pointer;font-size:11px;text-decoration:underline;margin-left:auto}
-
 .lob-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px}
 .lob-card{background:var(--card);border:2px solid var(--border);border-radius:var(--r);padding:16px;text-align:center;cursor:pointer;transition:all .2s}
 .lob-card:hover{border-color:var(--accent);background:var(--card2)}
@@ -74,62 +102,57 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--t1);min-h
 textarea.fi{min-height:50px;resize:vertical}
 .exp{margin-top:24px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
 #printReport{display:none}
-@media print{body{background:#fff!important;color:#000!important;font-family:'Segoe UI',Arial,sans-serif!important}.hdr,#step1,#step2,#step3{display:none!important}#printReport{display:block!important;padding:20px 30px}@page{margin:0.5in;size:letter}}
+@media print{body{background:#fff!important;color:#000!important;font-family:'Segoe UI',Arial,sans-serif!important}.hdr,#step1,#step2,#step3,.gate-overlay{display:none!important}#printReport{display:block!important;padding:20px 30px}@page{margin:0.5in;size:letter}}
 @media(max-width:640px){.stats{grid-template-columns:repeat(2,1fr)}.fr{grid-template-columns:1fr;gap:3px}.lob-grid{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
 
-<!-- SETUP OVERLAY - shows only on first visit -->
+<!-- ACCESS CODE GATE -->
+<div class="gate-overlay" id="gateOverlay" style="display:none">
+<div class="gate-box">
+<h1>ACORD Auto-Fill</h1>
+<div class="tagline">AI-Powered Insurance Form Extraction</div>
+<p class="sub">Upload dec pages, emails, Excel spreadsheets, or quotes and instantly extract data into the correct ACORD fields.</p>
+<div class="gate-features">
+<div class="gf"><span>&#10003;</span> Supports 10+ lines of business</div>
+<div class="gf"><span>&#10003;</span> Homeowners, Auto, Commercial, Workers Comp &amp; more</div>
+<div class="gf"><span>&#10003;</span> Reads PDFs, images, Excel (.xlsx), emails, and text</div>
+<div class="gf"><span>&#10003;</span> Export to CSV, JSON, or Print to PDF</div>
+</div>
+<!-- CHANGE THIS URL to your Gumroad product link -->
+<a class="gate-buy" href="https://YOUR_GUMROAD_LINK_HERE" target="_blank">Get Access - Buy Now</a>
+<div class="gate-divider">Already purchased?</div>
+<div class="gate-code-row">
+<input type="text" id="gateCodeInput" placeholder="Enter your access code" spellcheck="false" autocomplete="off"/>
+<button onclick="checkAccessCode()">Unlock</button>
+</div>
+<div class="gate-status" id="gateStatus"></div>
+</div>
+</div>
+
+<!-- API KEY SETUP -->
 <div class="setup-overlay" id="setupOverlay" style="display:none">
 <div class="setup-box">
-<h2>Welcome! Quick One-Time Setup</h2>
-<p class="sub">This app uses AI to read your insurance documents. You need a free API key to get started. Takes about 2 minutes.</p>
-
-<div class="setup-step">
-<span class="sn">1</span><span class="st">Create a free Anthropic account</span>
-<div class="sd"><a href="https://console.anthropic.com/" target="_blank">Click here to sign up</a> (Google or email)</div>
-</div>
-
-<div class="setup-step">
-<span class="sn">2</span><span class="st">Get your API key</span>
-<div class="sd"><a href="https://console.anthropic.com/settings/keys" target="_blank">Click here</a>, then click "Create Key", give it any name, and copy it</div>
-</div>
-
-<div class="setup-step">
-<span class="sn">3</span><span class="st">Add billing (pay only for what you use)</span>
-<div class="sd"><a href="https://console.anthropic.com/settings/billing" target="_blank">Click here</a> to add a card. Typical cost: ~$0.01-0.05 per document</div>
-</div>
-
-<div class="setup-step">
-<span class="sn">4</span><span class="st">Paste your key below</span>
-<div class="sd">Your key is saved in your browser only. We never see it or store it on any server.</div>
-</div>
-
+<h2>One-Time Setup</h2>
+<p class="sub">You need an AI API key to power the extraction. Takes about 2 minutes, you only do it once.</p>
+<div class="setup-step"><span class="sn">1</span><span class="st">Create a free Anthropic account</span><div class="sd"><a href="https://console.anthropic.com/" target="_blank">Click here to sign up</a> (Google or email)</div></div>
+<div class="setup-step"><span class="sn">2</span><span class="st">Get your API key</span><div class="sd"><a href="https://console.anthropic.com/settings/keys" target="_blank">Click here</a>, then click "Create Key", give it any name, and copy it</div></div>
+<div class="setup-step"><span class="sn">3</span><span class="st">Add billing (pay only for what you use)</span><div class="sd"><a href="https://console.anthropic.com/settings/billing" target="_blank">Click here</a> to add a card. Typical cost: ~$0.01-0.05 per document</div></div>
+<div class="setup-step"><span class="sn">4</span><span class="st">Paste your key below</span><div class="sd">Your key is saved in your browser only. We never see it or store it on any server.</div></div>
 <input type="text" class="setup-input" id="setupKeyInput" placeholder="Paste your API key here (starts with sk-ant-...)" autocomplete="off" spellcheck="false"/>
 <div class="setup-status" id="setupStatus"></div>
-
-<div class="setup-actions">
-<button class="btn btn-p" id="setupSaveBtn" onclick="saveSetupKey()" disabled>Save &amp; Start Using</button>
-</div>
+<div class="setup-actions"><button class="btn btn-p" id="setupSaveBtn" onclick="saveSetupKey()" disabled>Save &amp; Start Using</button></div>
 </div>
 </div>
 
 <!-- HEADER -->
-<div class="hdr"><div class="hdr-l"><div class="logo">AC</div><div><div class="hdr-t" id="hdrT">Select Line of Business</div><div class="hdr-s">ACORD Form Auto-Filler</div></div></div><div id="hdrB"></div></div>
+<div class="hdr"><div class="hdr-l"><div class="logo">AF</div><div><div class="hdr-t" id="hdrT">Select Line of Business</div><div class="hdr-s">ACORD Auto-Fill</div></div></div><div id="hdrB"></div></div>
 
 <!-- STEP 1 -->
 <div id="step1" class="wrap">
-<div class="center mb"><h1 style="font-size:26px;font-weight:800">ACORD Form Filler</h1><p style="color:var(--t2);font-size:14px;max-width:500px;margin:6px auto 0">Upload dec pages, emails, or quotes &mdash; AI extracts and maps to the right ACORD fields.</p></div>
-
-<!-- Key status bar (shows after setup) -->
-<div class="key-saved" id="keySaved" style="display:none">
-<span style="font-size:16px">&#9989;</span>
-<span>API key saved in your browser</span>
-<button onclick="changeKey()">Change key</button>
-<button onclick="removeKey()" style="color:var(--red)">Remove</button>
-</div>
-
+<div class="center mb"><h1 style="font-size:26px;font-weight:800">ACORD Auto-Fill</h1><p style="color:var(--t2);font-size:14px;max-width:500px;margin:6px auto 0">Upload dec pages, emails, Excel files, or quotes &mdash; AI extracts and maps to the right ACORD fields.</p></div>
+<div class="key-saved" id="keySaved" style="display:none"><span style="font-size:16px">&#9989;</span><span>API key saved in your browser</span><button onclick="changeKey()">Change key</button><button onclick="removeKey()" style="color:var(--red)">Remove</button></div>
 <h2 style="font-size:16px;font-weight:700;margin-bottom:12px">What type of policy?</h2>
 <div class="lob-grid" id="lobGrid"></div>
 <div class="acts"><button class="btn btn-p" id="lobNext" disabled onclick="goStep2()">Continue &rarr;</button></div>
@@ -138,7 +161,7 @@ textarea.fi{min-height:50px;resize:vertical}
 <!-- STEP 2 -->
 <div id="step2" class="wrap" style="display:none">
 <div class="center mb"><h1 style="font-size:22px;font-weight:800" id="s2t">Upload Documents</h1><p style="color:var(--t2);font-size:13px" id="s2s"></p></div>
-<div class="upz" id="upZone"><div style="font-size:40px;margin-bottom:10px">&#128196;</div><h3>Drop files here or click to browse</h3><p style="font-size:12px;color:var(--t3)">PDF &middot; Images &middot; Text &middot; Emails</p><input type="file" id="fileIn" multiple accept=".pdf,.png,.jpg,.jpeg,.gif,.bmp,.tiff,.txt,.eml,.msg,.csv" hidden/></div>
+<div class="upz" id="upZone"><div style="font-size:40px;margin-bottom:10px">&#128196;</div><h3>Drop files here or click to browse</h3><p style="font-size:12px;color:var(--t3)">PDF &middot; Images &middot; Excel (.xlsx) &middot; Text &middot; Emails</p><input type="file" id="fileIn" multiple accept=".pdf,.png,.jpg,.jpeg,.gif,.bmp,.tiff,.txt,.eml,.msg,.csv,.xlsx,.xls" hidden/></div>
 <div class="chips" id="chips"></div>
 <div class="paste" style="margin-top:20px"><label>Or paste document / email text:</label><textarea id="pasteBox" placeholder="Paste declaration page text, email content, quote details..."></textarea></div>
 <div class="err" id="errBox"></div>
@@ -157,96 +180,75 @@ textarea.fi{min-height:50px;resize:vertical}
 
 <script>
 /* ============================================
-   API KEY MANAGEMENT
-   Key is stored in the user's browser only.
-   Never sent anywhere except directly to Anthropic.
+   ACCESS CODE GATE
+   
+   TO CHANGE YOUR ACCESS CODES:
+   Edit the VALID_CODES list below.
+   
+   TO CHANGE YOUR GUMROAD LINK:
+   Edit the href in the HTML above where
+   it says YOUR_GUMROAD_LINK_HERE
    ============================================ */
 
-function getSavedKey(){
-try{return localStorage.getItem('acord_api_key')||''}catch(e){return''}
+var VALID_CODES = ['ACORD-2026-PRO'];
+
+function getAccessGranted(){try{return localStorage.getItem('acord_access')==='granted'}catch(e){return false}}
+function setAccessGranted(){try{localStorage.setItem('acord_access','granted')}catch(e){}}
+
+function checkAccessCode(){
+var input=document.getElementById('gateCodeInput').value.trim().toUpperCase();
+var status=document.getElementById('gateStatus');
+if(VALID_CODES.indexOf(input)!==-1){
+setAccessGranted();
+status.textContent='Access granted! Loading...';
+status.style.color='var(--green)';
+setTimeout(function(){document.getElementById('gateOverlay').style.display='none';checkSetup()},800);
+}else{
+status.textContent='Invalid code. Please check and try again.';
+status.style.color='var(--red)';
 }
-function setSavedKey(k){
-try{localStorage.setItem('acord_api_key',k)}catch(e){}
 }
-function deleteSavedKey(){
-try{localStorage.removeItem('acord_api_key')}catch(e){}
+
+function checkGate(){
+if(getAccessGranted()){document.getElementById('gateOverlay').style.display='none';checkSetup()}
+else{document.getElementById('gateOverlay').style.display='flex'}
 }
+checkGate();
+
+
+/* ============================================
+   API KEY MANAGEMENT
+   ============================================ */
+
+function getSavedKey(){try{return localStorage.getItem('acord_api_key')||''}catch(e){return''}}
+function setSavedKey(k){try{localStorage.setItem('acord_api_key',k)}catch(e){}}
+function deleteSavedKey(){try{localStorage.removeItem('acord_api_key')}catch(e){}}
 function cleanKeyStr(v){return v.replace(/\s+/g,'').replace(/[^\x20-\x7E]/g,'')}
 function isValidKey(k){return k.indexOf('sk-')===0&&k.length>20}
 
-// Show setup if no key saved
 function checkSetup(){
 var k=getSavedKey();
-if(isValidKey(k)){
-document.getElementById('setupOverlay').style.display='none';
-document.getElementById('keySaved').style.display='flex';
-}else{
-document.getElementById('setupOverlay').style.display='flex';
-document.getElementById('keySaved').style.display='none';
-}
+if(isValidKey(k)){document.getElementById('setupOverlay').style.display='none';document.getElementById('keySaved').style.display='flex'}
+else{document.getElementById('setupOverlay').style.display='flex';document.getElementById('keySaved').style.display='none'}
 }
 
-// Setup overlay key input
 var setupInput=document.getElementById('setupKeyInput');
-setupInput.addEventListener('input',function(){
-var k=cleanKeyStr(this.value);
-document.getElementById('setupSaveBtn').disabled=!isValidKey(k);
-});
-setupInput.addEventListener('paste',function(e){
-e.preventDefault();
-this.value=cleanKeyStr((e.clipboardData||window.clipboardData).getData('text'));
-this.dispatchEvent(new Event('input'));
-});
+setupInput.addEventListener('input',function(){document.getElementById('setupSaveBtn').disabled=!isValidKey(cleanKeyStr(this.value))});
+setupInput.addEventListener('paste',function(e){e.preventDefault();this.value=cleanKeyStr((e.clipboardData||window.clipboardData).getData('text'));this.dispatchEvent(new Event('input'))});
 
 function saveSetupKey(){
-var k=cleanKeyStr(setupInput.value);
-if(!isValidKey(k))return;
+var k=cleanKeyStr(setupInput.value);if(!isValidKey(k))return;
 var btn=document.getElementById('setupSaveBtn'),st=document.getElementById('setupStatus');
 btn.disabled=true;btn.textContent='Testing key...';
 st.textContent='Verifying your key works...';st.style.color='var(--accent)';
-
 fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':k,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:10,messages:[{role:'user',content:'Hi'}]})}).then(function(res){
-if(res.ok){
-setSavedKey(k);
-st.textContent='Key works! Loading app...';st.style.color='var(--green)';
-setTimeout(function(){
-document.getElementById('setupOverlay').style.display='none';
-document.getElementById('keySaved').style.display='flex';
-},800);
-}else{
-return res.json().then(function(e){
-st.textContent='Key error: '+(e.error?e.error.message:'Unknown error. Check your key and billing.');
-st.style.color='var(--red)';
-btn.disabled=false;btn.textContent='Save & Start Using';
-});
-}
-}).catch(function(){
-st.textContent='Network error. Check your internet connection.';
-st.style.color='var(--red)';
-btn.disabled=false;btn.textContent='Save & Start Using';
-});
+if(res.ok){setSavedKey(k);st.textContent='Key works! Loading app...';st.style.color='var(--green)';setTimeout(function(){document.getElementById('setupOverlay').style.display='none';document.getElementById('keySaved').style.display='flex'},800)}
+else{return res.json().then(function(e){st.textContent='Key error: '+(e.error?e.error.message:'Unknown error.');st.style.color='var(--red)';btn.disabled=false;btn.textContent='Save & Start Using'})}
+}).catch(function(){st.textContent='Network error. Check your internet.';st.style.color='var(--red)';btn.disabled=false;btn.textContent='Save & Start Using'});
 }
 
-function changeKey(){
-document.getElementById('setupOverlay').style.display='flex';
-setupInput.value=getSavedKey();
-setupInput.dispatchEvent(new Event('input'));
-document.getElementById('setupStatus').textContent='';
-document.getElementById('setupSaveBtn').textContent='Save & Start Using';
-}
-
-function removeKey(){
-if(confirm('Remove your saved API key from this browser?')){
-deleteSavedKey();
-document.getElementById('keySaved').style.display='none';
-document.getElementById('setupOverlay').style.display='flex';
-setupInput.value='';
-document.getElementById('setupStatus').textContent='';
-}
-}
-
-// Run on page load
-checkSetup();
+function changeKey(){document.getElementById('setupOverlay').style.display='flex';setupInput.value=getSavedKey();setupInput.dispatchEvent(new Event('input'));document.getElementById('setupStatus').textContent='';document.getElementById('setupSaveBtn').textContent='Save & Start Using'}
+function removeKey(){if(confirm('Remove your saved API key?')){deleteSavedKey();document.getElementById('keySaved').style.display='none';document.getElementById('setupOverlay').style.display='flex';setupInput.value='';document.getElementById('setupStatus').textContent=''}}
 
 
 /* ============================================
@@ -275,6 +277,7 @@ wc:{label:"Workers Compensation",icon:"\ud83d\udc77",fields:{wc_st:{l:"State",t:
 cu:{label:"Commercial Umbrella",icon:"\u2602\ufe0f",fields:{cu_occ:{l:"Each Occurrence",t:"text",a:"ACORD 125"},cu_agg:{l:"Aggregate",t:"text",a:"ACORD 125"},cu_ret:{l:"Retention/SIR",t:"text",a:"ACORD 125"},cu_prem:{l:"Premium",t:"text",a:"ACORD 125"}}}
 };
 
+
 /* ============================================
    APP STATE & LOB GRID
    ============================================ */
@@ -282,6 +285,7 @@ cu:{label:"Commercial Umbrella",icon:"\u2602\ufe0f",fields:{cu_occ:{l:"Each Occu
 var selLOB=null,actSec=[],allK=[],formData={},files=[],expanded={};
 var lg=document.getElementById('lobGrid');
 Object.entries(LOBS).forEach(function(e){var k=e[0],v=e[1],d=document.createElement('div');d.className='lob-card';d.innerHTML='<div class="ico">'+v.icon+'</div><div class="nm">'+v.name+'</div><div class="fm">'+v.forms+'</div>';d.onclick=function(){document.querySelectorAll('.lob-card').forEach(function(c){c.classList.remove('sel')});d.classList.add('sel');selLOB=k;document.getElementById('lobNext').disabled=false};lg.appendChild(d)});
+
 
 /* ============================================
    NAVIGATION
@@ -291,21 +295,56 @@ function goStep1(){document.getElementById('step1').style.display='';document.ge
 function goStep2(){if(!selLOB)return;var l=LOBS[selLOB];actSec=l.sec;allK=[];actSec.forEach(function(s){Object.keys(S[s].fields).forEach(function(k){allK.push(k)})});document.getElementById('step1').style.display='none';document.getElementById('step2').style.display='';document.getElementById('step3').style.display='none';document.getElementById('hdrT').textContent=l.name;document.getElementById('s2t').textContent='Upload '+l.name+' Documents';document.getElementById('s2s').textContent='AI extracts fields for '+l.forms;document.getElementById('hdrB').innerHTML='<button class="btn btn-o btn-sm" onclick="goStep1()">Home</button>';setupUp()}
 function goStep3(){document.getElementById('step1').style.display='none';document.getElementById('step2').style.display='none';document.getElementById('step3').style.display='';document.getElementById('hdrT').textContent='Review - '+LOBS[selLOB].name;document.getElementById('hdrB').innerHTML='<button class="btn btn-o btn-sm" onclick="goStep1()">Home</button> <button class="btn btn-o btn-sm" onclick="goStep2()">Back</button>';renderReview()}
 
+
 /* ============================================
-   FILE UPLOAD
+   FILE UPLOAD (now supports Excel!)
    ============================================ */
 
 function setupUp(){var uz=document.getElementById('upZone'),fi=document.getElementById('fileIn');uz.onclick=function(){fi.click()};uz.ondragover=function(e){e.preventDefault();uz.classList.add('on')};uz.ondragleave=function(){uz.classList.remove('on')};uz.ondrop=function(e){e.preventDefault();uz.classList.remove('on');addF(e.dataTransfer.files)};fi.onchange=function(e){addF(e.target.files);e.target.value=''}}
-function addF(fl){var ok=Array.from(fl).filter(function(f){return f.type==='application/pdf'||f.type.indexOf('image/')===0||f.type.indexOf('text/')===0||/\.(eml|msg|csv|txt)$/i.test(f.name)});if(ok.length){files=files.concat(ok);renderChips();hideErr()}else showErr('Unsupported file type')}
+
+function isExcel(f){return /\.(xlsx|xls)$/i.test(f.name)||f.type==='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'||f.type==='application/vnd.ms-excel'}
+
+function addF(fl){
+var ok=Array.from(fl).filter(function(f){
+return f.type==='application/pdf'||f.type.indexOf('image/')===0||f.type.indexOf('text/')===0||isExcel(f)||/\.(eml|msg|csv|txt)$/i.test(f.name)
+});
+if(ok.length){files=files.concat(ok);renderChips();hideErr()}else showErr('Unsupported file type. Use PDF, Excel, images, or text files.')
+}
+
 function removeF(i){files.splice(i,1);renderChips()}
-function renderChips(){document.getElementById('chips').innerHTML=files.map(function(f,i){return'<div class="chip">'+f.name+' <button class="x" onclick="removeF('+i+')">x</button></div>'}).join('')}
+function renderChips(){document.getElementById('chips').innerHTML=files.map(function(f,i){return'<div class="chip">'+(isExcel(f)?'&#128202; ':'')+f.name+' <button class="x" onclick="removeF('+i+')">x</button></div>'}).join('')}
 function showErr(m){var e=document.getElementById('errBox');e.textContent=m;e.style.display='block'}
 function hideErr(){document.getElementById('errBox').style.display='none'}
 function readB64(f){return new Promise(function(r,j){var x=new FileReader();x.onload=function(){r(x.result.split(',')[1])};x.onerror=j;x.readAsDataURL(f)})}
 function readTxt(f){return new Promise(function(r,j){var x=new FileReader();x.onload=function(){r(x.result)};x.onerror=j;x.readAsText(f)})}
 
+/* Read Excel file and convert all sheets to readable text */
+function readXlsx(f){
+return new Promise(function(resolve,reject){
+var reader=new FileReader();
+reader.onerror=reject;
+reader.onload=function(e){
+try{
+var data=new Uint8Array(e.target.result);
+var workbook=XLSX.read(data,{type:'array',cellDates:true});
+var allText='';
+workbook.SheetNames.forEach(function(sheetName){
+allText+='=== Sheet: '+sheetName+' ===\n';
+var sheet=workbook.Sheets[sheetName];
+/* Convert to CSV-like text so AI can read it */
+var csv=XLSX.utils.sheet_to_csv(sheet,{blankrows:false});
+allText+=csv+'\n\n';
+});
+resolve(allText);
+}catch(err){reject(err)}
+};
+reader.readAsArrayBuffer(f);
+});
+}
+
+
 /* ============================================
-   AI EXTRACTION (uses saved key from browser)
+   AI EXTRACTION (handles Excel files)
    ============================================ */
 
 function doExtract(){
@@ -313,27 +352,39 @@ var paste=document.getElementById('pasteBox').value.trim();
 if(!files.length&&!paste){showErr('Upload files or paste text.');return}
 
 var key=getSavedKey();
-if(!isValidKey(key)){
-showErr('No API key found. Click "Change key" at the top to set one up.');
-return;
-}
+if(!isValidKey(key)){showErr('No API key found. Click "Change key" at the top.');return}
 
 hideErr();
 var pb=document.getElementById('progBar'),eb=document.getElementById('extractBtn');
 pb.style.display='block';eb.disabled=true;eb.textContent='Extracting...';
-var pct=0,iv=setInterval(function(){pct=Math.min(pct+Math.random()*10,92);document.getElementById('progFill').style.width=Math.round(pct)+'%';document.getElementById('progPct').textContent=Math.round(pct)+'%';document.getElementById('progLbl').textContent=pct<30?'Reading...':pct<60?'AI analyzing...':'Mapping fields...'},500);
+var pct=0,iv=setInterval(function(){pct=Math.min(pct+Math.random()*10,92);document.getElementById('progFill').style.width=Math.round(pct)+'%';document.getElementById('progPct').textContent=Math.round(pct)+'%';document.getElementById('progLbl').textContent=pct<30?'Reading files...':pct<60?'AI analyzing...':'Mapping fields...'},500);
 
 var content=[],chain=Promise.resolve();
 files.forEach(function(f){chain=chain.then(function(){
-if(f.type.indexOf('image/')===0)return readB64(f).then(function(b){content.push({type:'image',source:{type:'base64',media_type:f.type==='image/jpg'?'image/jpeg':f.type,data:b}});content.push({type:'text',text:'[Image: '+f.name+']'})});
-else if(f.type==='application/pdf')return readB64(f).then(function(b){content.push({type:'document',source:{type:'base64',media_type:'application/pdf',data:b}});content.push({type:'text',text:'[PDF: '+f.name+']'})});
-else return readTxt(f).then(function(t){content.push({type:'text',text:'--- '+f.name+' ---\n'+t})})
+/* EXCEL FILES - convert to text first, then send to AI */
+if(isExcel(f)){
+return readXlsx(f).then(function(text){
+content.push({type:'text',text:'--- Excel File: '+f.name+' ---\n'+text});
+});
+}
+/* IMAGE FILES */
+else if(f.type.indexOf('image/')===0){
+return readB64(f).then(function(b){content.push({type:'image',source:{type:'base64',media_type:f.type==='image/jpg'?'image/jpeg':f.type,data:b}});content.push({type:'text',text:'[Image: '+f.name+']'})});
+}
+/* PDF FILES */
+else if(f.type==='application/pdf'){
+return readB64(f).then(function(b){content.push({type:'document',source:{type:'base64',media_type:'application/pdf',data:b}});content.push({type:'text',text:'[PDF: '+f.name+']'})});
+}
+/* TEXT/CSV/EMAIL FILES */
+else{
+return readTxt(f).then(function(t){content.push({type:'text',text:'--- '+f.name+' ---\n'+t})});
+}
 })});
 
 chain.then(function(){
 if(paste)content.push({type:'text',text:'--- Pasted ---\n'+paste});
-content.push({type:'text',text:'Extract all insurance data. Return ONLY valid JSON with these keys (empty string if missing): '+JSON.stringify(allK)});
-return fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:4000,system:'You extract insurance data. Return ONLY valid JSON. No markdown. Empty string for missing.',messages:[{role:'user',content:content}]})})
+content.push({type:'text',text:'Extract all insurance data from the above documents. The data may come from Excel spreadsheets, PDFs, images, or text. Return ONLY valid JSON with these keys (empty string if missing): '+JSON.stringify(allK)});
+return fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:4000,system:'You extract insurance data from documents including Excel spreadsheets, PDFs, and text. Return ONLY valid JSON. No markdown. Empty string for missing fields.',messages:[{role:'user',content:content}]})})
 }).then(function(res){
 if(!res.ok)return res.json().then(function(e){throw new Error(e.error?e.error.message:'Error '+res.status)});
 return res.json()
@@ -347,13 +398,12 @@ document.getElementById('progLbl').textContent='Done!';
 expanded={};actSec.forEach(function(s){if(Object.keys(S[s].fields).some(function(k){return formData[k]&&String(formData[k]).trim()}))expanded[s]=true});
 setTimeout(goStep3,500)
 }).catch(function(e){
-clearInterval(iv);
-showErr('Failed: '+e.message);
-pb.style.display='none'
+clearInterval(iv);showErr('Failed: '+e.message);pb.style.display='none'
 }).finally(function(){
 eb.disabled=false;eb.textContent='Extract & Fill ACORD Fields'
 });
 }
+
 
 /* ============================================
    REVIEW & RENDER
@@ -362,6 +412,7 @@ eb.disabled=false;eb.textContent='Extract & Fill ACORD Fields'
 function fc(){return allK.filter(function(k){return formData[k]&&String(formData[k]).trim()}).length}
 function sf(s){return Object.keys(S[s].fields).filter(function(k){return formData[k]&&String(formData[k]).trim()}).length}
 function renderReview(){var filled=fc(),tot=allK.length,pct=Math.round(filled/tot*100),conf=filled>20?'High':filled>8?'Medium':'Low',cc=filled>20?'var(--green)':filled>8?'var(--yellow)':'var(--red)';document.getElementById('statsBar').innerHTML='<div class="st"><div class="v">'+filled+'/'+tot+'</div><div class="l">Fields</div></div><div class="st"><div class="v">'+pct+'%</div><div class="l">Complete</div></div><div class="st"><div class="v" style="color:'+cc+'">'+conf+'</div><div class="l">Confidence</div></div><div class="st"><div class="v">'+LOBS[selLOB].forms+'</div><div class="l">Form</div></div>';document.getElementById('sections').innerHTML=actSec.map(function(sKey){var sec=S[sKey],sfc=sf(sKey),st=Object.keys(sec.fields).length,isO=expanded[sKey],flds='';if(isO)Object.entries(sec.fields).forEach(function(e){var fk=e[0],fd=e[1],v=formData[fk]||'',inp;if(fd.t==='textarea')inp='<textarea class="fi" onchange="formData[\''+fk+'\']=this.value">'+v+'</textarea>';else inp='<input class="fi" value="'+(v||'').replace(/"/g,'&quot;')+'" onchange="formData[\''+fk+'\']=this.value"/>';flds+='<div class="fr"><div class="fl">'+fd.l+(fd.r?'<span class="rq">*</span>':'')+'</div>'+inp+'<div class="fref">'+fd.a+'</div></div>'});return'<div class="acc"><button class="acc-h" onclick="expanded[\''+sKey+'\']=!expanded[\''+sKey+'\'];renderReview()"><div class="lt"><span class="arr '+(isO?'open':'')+'">&#9654;</span><span style="font-size:16px">'+sec.icon+'</span><span class="tt">'+sec.label+'</span></div><span class="badge '+(sfc>0?'badge-g':'badge-d')+'">'+sfc+'/'+st+'</span></button>'+(isO?'<div class="acc-b">'+flds+'</div>':'')+'</div>'}).join('')}
+
 
 /* ============================================
    PRINT / EXPORT

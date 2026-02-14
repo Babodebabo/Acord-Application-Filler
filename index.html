@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ACORD Form Filler</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0f1a;--card:#111827;--card2:#161f33;--border:#1e2d44;--accent:#3b82f6;--accent2:#2563eb;--glow:rgba(59,130,246,.12);--green:#10b981;--yellow:#f59e0b;--red:#ef4444;--t1:#e2e8f0;--t2:#94a3b8;--t3:#64748b;--r:10px}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh}
+.hdr{background:rgba(17,24,39,.9);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.hdr-l{display:flex;align-items:center;gap:12px}
+.logo{width:36px;height:36px;background:linear-gradient(135deg,var(--accent),#6366f1);border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:#fff}
+.hdr-t{font-weight:700;font-size:15px}.hdr-s{font-size:11px;color:var(--t3)}
+.btn{padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:inherit;display:inline-flex;align-items:center;gap:6px;transition:all .15s}
+.btn-p{background:var(--accent);color:#fff}.btn-p:hover{background:var(--accent2)}.btn-p:disabled{opacity:.5;cursor:not-allowed}
+.btn-o{background:transparent;color:var(--t2);border:1px solid var(--border)}.btn-o:hover{background:var(--card2)}
+.btn-g{background:var(--green);color:#fff}.btn-g:hover{background:#059669}
+.btn-sm{padding:6px 12px;font-size:12px}
+.badge{display:inline-flex;padding:3px 9px;border-radius:99px;font-size:10px;font-weight:600}
+.badge-g{background:rgba(16,185,129,.1);color:var(--green)}.badge-d{background:rgba(100,116,139,.12);color:var(--t3)}
+.wrap{max-width:880px;margin:0 auto;padding:28px 20px}.center{text-align:center}.mb{margin-bottom:24px}
+
+/* Setup overlay */
+.setup-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.85);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px}
+.setup-box{background:var(--card);border:1px solid var(--border);border-radius:16px;max-width:520px;width:100%;padding:36px;position:relative}
+.setup-box h2{font-size:22px;font-weight:800;margin-bottom:6px}
+.setup-box .sub{color:var(--t2);font-size:13px;margin-bottom:24px}
+.setup-step{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:12px}
+.setup-step .sn{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:var(--accent);color:#fff;border-radius:50%;font-size:12px;font-weight:700;margin-right:8px}
+.setup-step .st{font-size:13px;font-weight:600;color:var(--t1)}
+.setup-step .sd{font-size:12px;color:var(--t2);margin-top:4px;margin-left:32px}
+.setup-step a{color:var(--accent);text-decoration:underline}
+.setup-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px 14px;color:var(--t1);font-size:14px;font-family:monospace;outline:none;margin-top:16px}
+.setup-input:focus{border-color:var(--accent)}
+.setup-input::placeholder{color:var(--t3)}
+.setup-status{margin-top:10px;font-size:12px;min-height:18px}
+.setup-actions{display:flex;gap:10px;margin-top:20px}
+.setup-actions .btn{flex:1;justify-content:center;padding:12px;font-size:14px}
+.key-saved{display:flex;align-items:center;gap:8px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.25);border-radius:var(--r);padding:10px 14px;margin-bottom:16px;font-size:12px;color:var(--green)}
+.key-saved button{background:none;border:none;color:var(--t3);cursor:pointer;font-size:11px;text-decoration:underline;margin-left:auto}
+
+.lob-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px}
+.lob-card{background:var(--card);border:2px solid var(--border);border-radius:var(--r);padding:16px;text-align:center;cursor:pointer;transition:all .2s}
+.lob-card:hover{border-color:var(--accent);background:var(--card2)}
+.lob-card.sel{border-color:var(--accent);background:rgba(59,130,246,.08);box-shadow:0 0 0 1px var(--accent)}
+.lob-card .ico{font-size:28px;margin-bottom:6px}.lob-card .nm{font-size:12px;font-weight:700}.lob-card .fm{font-size:10px;color:var(--t3);margin-top:2px}
+.upz{border:2px dashed var(--border);border-radius:14px;padding:40px 20px;text-align:center;cursor:pointer;transition:all .25s;background:var(--card)}
+.upz:hover,.upz.on{border-color:var(--accent);background:rgba(59,130,246,.03)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--border);border-radius:99px;padding:5px 12px;font-size:12px}
+.chip .x{background:none;border:none;color:var(--t3);cursor:pointer;font-size:15px}.chip .x:hover{color:var(--red)}
+.paste label{font-size:13px;font-weight:500;color:var(--t2);display:block;margin-bottom:6px}
+.paste textarea{width:100%;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:12px;color:var(--t1);font-size:13px;font-family:inherit;resize:vertical;min-height:80px;outline:none}
+.paste textarea:focus{border-color:var(--accent)}
+.err{margin-top:16px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:var(--r);padding:12px 16px;color:#fca5a5;font-size:13px;display:none}
+.prog{margin-top:16px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;display:none}
+.prog-t{height:5px;background:var(--bg)}.prog-f{height:100%;background:linear-gradient(90deg,var(--accent),#818cf8);border-radius:3px;transition:width .4s;width:0}
+.prog-i{padding:8px 14px;display:flex;justify-content:space-between;font-size:11px;color:var(--t3)}
+.acts{display:flex;gap:10px;margin-top:24px}.acts .btn{flex:1;justify-content:center;padding:13px;font-size:14px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px}
+.st{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px;text-align:center}
+.st .v{font-size:22px;font-weight:800;color:#fff}.st .l{font-size:10px;color:var(--t3);margin-top:3px;text-transform:uppercase;letter-spacing:.4px}
+.acc{margin-bottom:8px;border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.acc-h{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;background:var(--card);cursor:pointer;border:none;width:100%;color:var(--t1);font-family:inherit;transition:background .15s}
+.acc-h:hover{background:var(--card2)}
+.acc-h .lt{display:flex;align-items:center;gap:8px}.acc-h .arr{font-size:10px;color:var(--t3);transition:transform .2s}.acc-h .arr.open{transform:rotate(90deg)}.acc-h .tt{font-size:13px;font-weight:700}
+.acc-b{padding:4px 18px 18px;background:rgba(17,24,39,.4)}
+.fr{display:grid;grid-template-columns:170px 1fr auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid rgba(30,45,68,.4)}.fr:last-child{border-bottom:none}
+.fl{font-size:12px;font-weight:500;color:var(--t2)}.fl .rq{color:var(--red);margin-left:2px}
+.fi{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:7px 10px;color:var(--t1);font-size:12px;font-family:inherit;outline:none}.fi:focus{border-color:var(--accent)}
+.fref{font-size:9px;color:var(--t3);white-space:nowrap}
+textarea.fi{min-height:50px;resize:vertical}
+.exp{margin-top:24px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+#printReport{display:none}
+@media print{body{background:#fff!important;color:#000!important;font-family:'Segoe UI',Arial,sans-serif!important}.hdr,#step1,#step2,#step3{display:none!important}#printReport{display:block!important;padding:20px 30px}@page{margin:0.5in;size:letter}}
+@media(max-width:640px){.stats{grid-template-columns:repeat(2,1fr)}.fr{grid-template-columns:1fr;gap:3px}.lob-grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+
+<!-- SETUP OVERLAY - shows only on first visit -->
+<div class="setup-overlay" id="setupOverlay" style="display:none">
+<div class="setup-box">
+<h2>Welcome! Quick One-Time Setup</h2>
+<p class="sub">This app uses AI to read your insurance documents. You need a free API key to get started. Takes about 2 minutes.</p>
+
+<div class="setup-step">
+<span class="sn">1</span><span class="st">Create a free Anthropic account</span>
+<div class="sd"><a href="https://console.anthropic.com/" target="_blank">Click here to sign up</a> (Google or email)</div>
+</div>
+
+<div class="setup-step">
+<span class="sn">2</span><span class="st">Get your API key</span>
+<div class="sd"><a href="https://console.anthropic.com/settings/keys" target="_blank">Click here</a>, then click "Create Key", give it any name, and copy it</div>
+</div>
+
+<div class="setup-step">
+<span class="sn">3</span><span class="st">Add billing (pay only for what you use)</span>
+<div class="sd"><a href="https://console.anthropic.com/settings/billing" target="_blank">Click here</a> to add a card. Typical cost: ~$0.01-0.05 per document</div>
+</div>
+
+<div class="setup-step">
+<span class="sn">4</span><span class="st">Paste your key below</span>
+<div class="sd">Your key is saved in your browser only. We never see it or store it on any server.</div>
+</div>
+
+<input type="text" class="setup-input" id="setupKeyInput" placeholder="Paste your API key here (starts with sk-ant-...)" autocomplete="off" spellcheck="false"/>
+<div class="setup-status" id="setupStatus"></div>
+
+<div class="setup-actions">
+<button class="btn btn-p" id="setupSaveBtn" onclick="saveSetupKey()" disabled>Save &amp; Start Using</button>
+</div>
+</div>
+</div>
+
+<!-- HEADER -->
+<div class="hdr"><div class="hdr-l"><div class="logo">AC</div><div><div class="hdr-t" id="hdrT">Select Line of Business</div><div class="hdr-s">ACORD Form Auto-Filler</div></div></div><div id="hdrB"></div></div>
+
+<!-- STEP 1 -->
+<div id="step1" class="wrap">
+<div class="center mb"><h1 style="font-size:26px;font-weight:800">ACORD Form Filler</h1><p style="color:var(--t2);font-size:14px;max-width:500px;margin:6px auto 0">Upload dec pages, emails, or quotes &mdash; AI extracts and maps to the right ACORD fields.</p></div>
+
+<!-- Key status bar (shows after setup) -->
+<div class="key-saved" id="keySaved" style="display:none">
+<span style="font-size:16px">&#9989;</span>
+<span>API key saved in your browser</span>
+<button onclick="changeKey()">Change key</button>
+<button onclick="removeKey()" style="color:var(--red)">Remove</button>
+</div>
+
+<h2 style="font-size:16px;font-weight:700;margin-bottom:12px">What type of policy?</h2>
+<div class="lob-grid" id="lobGrid"></div>
+<div class="acts"><button class="btn btn-p" id="lobNext" disabled onclick="goStep2()">Continue &rarr;</button></div>
+</div>
+
+<!-- STEP 2 -->
+<div id="step2" class="wrap" style="display:none">
+<div class="center mb"><h1 style="font-size:22px;font-weight:800" id="s2t">Upload Documents</h1><p style="color:var(--t2);font-size:13px" id="s2s"></p></div>
+<div class="upz" id="upZone"><div style="font-size:40px;margin-bottom:10px">&#128196;</div><h3>Drop files here or click to browse</h3><p style="font-size:12px;color:var(--t3)">PDF &middot; Images &middot; Text &middot; Emails</p><input type="file" id="fileIn" multiple accept=".pdf,.png,.jpg,.jpeg,.gif,.bmp,.tiff,.txt,.eml,.msg,.csv" hidden/></div>
+<div class="chips" id="chips"></div>
+<div class="paste" style="margin-top:20px"><label>Or paste document / email text:</label><textarea id="pasteBox" placeholder="Paste declaration page text, email content, quote details..."></textarea></div>
+<div class="err" id="errBox"></div>
+<div class="prog" id="progBar"><div class="prog-t"><div class="prog-f" id="progFill"></div></div><div class="prog-i"><span id="progLbl">Reading...</span><span id="progPct">0%</span></div></div>
+<div class="acts"><button class="btn btn-o" onclick="goStep1()">&larr; Back</button><button class="btn btn-p" id="extractBtn" onclick="doExtract()">Extract &amp; Fill ACORD Fields</button></div>
+</div>
+
+<!-- STEP 3 -->
+<div id="step3" class="wrap" style="display:none">
+<div id="statsBar" class="stats"></div>
+<div id="sections"></div>
+<div class="exp"><button class="btn btn-g" onclick="doPrint()" style="flex:1;max-width:300px;justify-content:center;padding:13px;font-size:15px">Print / Save PDF</button><button class="btn btn-o" onclick="expCSV()">CSV</button><button class="btn btn-o" onclick="expJSON()">JSON</button><button class="btn btn-o" onclick="cpAll()">Copy</button></div>
+</div>
+
+<div id="printReport"></div>
+
+<script>
+/* ============================================
+   API KEY MANAGEMENT
+   Key is stored in the user's browser only.
+   Never sent anywhere except directly to Anthropic.
+   ============================================ */
+
+function getSavedKey(){
+try{return localStorage.getItem('acord_api_key')||''}catch(e){return''}
+}
+function setSavedKey(k){
+try{localStorage.setItem('acord_api_key',k)}catch(e){}
+}
+function deleteSavedKey(){
+try{localStorage.removeItem('acord_api_key')}catch(e){}
+}
+function cleanKeyStr(v){return v.replace(/\s+/g,'').replace(/[^\x20-\x7E]/g,'')}
+function isValidKey(k){return k.indexOf('sk-')===0&&k.length>20}
+
+// Show setup if no key saved
+function checkSetup(){
+var k=getSavedKey();
+if(isValidKey(k)){
+document.getElementById('setupOverlay').style.display='none';
+document.getElementById('keySaved').style.display='flex';
+}else{
+document.getElementById('setupOverlay').style.display='flex';
+document.getElementById('keySaved').style.display='none';
+}
+}
+
+// Setup overlay key input
+var setupInput=document.getElementById('setupKeyInput');
+setupInput.addEventListener('input',function(){
+var k=cleanKeyStr(this.value);
+document.getElementById('setupSaveBtn').disabled=!isValidKey(k);
+});
+setupInput.addEventListener('paste',function(e){
+e.preventDefault();
+this.value=cleanKeyStr((e.clipboardData||window.clipboardData).getData('text'));
+this.dispatchEvent(new Event('input'));
+});
+
+function saveSetupKey(){
+var k=cleanKeyStr(setupInput.value);
+if(!isValidKey(k))return;
+var btn=document.getElementById('setupSaveBtn'),st=document.getElementById('setupStatus');
+btn.disabled=true;btn.textContent='Testing key...';
+st.textContent='Verifying your key works...';st.style.color='var(--accent)';
+
+fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':k,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:10,messages:[{role:'user',content:'Hi'}]})}).then(function(res){
+if(res.ok){
+setSavedKey(k);
+st.textContent='Key works! Loading app...';st.style.color='var(--green)';
+setTimeout(function(){
+document.getElementById('setupOverlay').style.display='none';
+document.getElementById('keySaved').style.display='flex';
+},800);
+}else{
+return res.json().then(function(e){
+st.textContent='Key error: '+(e.error?e.error.message:'Unknown error. Check your key and billing.');
+st.style.color='var(--red)';
+btn.disabled=false;btn.textContent='Save & Start Using';
+});
+}
+}).catch(function(){
+st.textContent='Network error. Check your internet connection.';
+st.style.color='var(--red)';
+btn.disabled=false;btn.textContent='Save & Start Using';
+});
+}
+
+function changeKey(){
+document.getElementById('setupOverlay').style.display='flex';
+setupInput.value=getSavedKey();
+setupInput.dispatchEvent(new Event('input'));
+document.getElementById('setupStatus').textContent='';
+document.getElementById('setupSaveBtn').textContent='Save & Start Using';
+}
+
+function removeKey(){
+if(confirm('Remove your saved API key from this browser?')){
+deleteSavedKey();
+document.getElementById('keySaved').style.display='none';
+document.getElementById('setupOverlay').style.display='flex';
+setupInput.value='';
+document.getElementById('setupStatus').textContent='';
+}
+}
+
+// Run on page load
+checkSetup();
+
+
+/* ============================================
+   LINES OF BUSINESS & FIELD DEFINITIONS
+   ============================================ */
+
+var LOBS={homeowners:{name:"Homeowners",icon:"\ud83c\udfe1",forms:"ACORD 80",sec:["applicant","agency","carrier","homeowner","ho_cov"]},dwelling_fire:{name:"Dwelling Fire",icon:"\ud83d\udd25",forms:"ACORD 84",sec:["applicant","agency","carrier","df"]},personal_auto:{name:"Personal Auto",icon:"\ud83d\ude99",forms:"ACORD 90",sec:["applicant","agency","carrier","pa","pa_drv"]},personal_umbrella:{name:"Personal Umbrella",icon:"\ud83c\udf02",forms:"ACORD 83",sec:["applicant","agency","carrier","pu"]},watercraft:{name:"Watercraft",icon:"\u26f5",forms:"ACORD 82",sec:["applicant","agency","carrier","wt"]},mobile_home:{name:"Mobile Home",icon:"\ud83c\udfe0",forms:"ACORD 85",sec:["applicant","agency","carrier","mh"]},inland_marine:{name:"Valuable Articles",icon:"\ud83d\udc8e",forms:"ACORD 81",sec:["applicant","agency","carrier","va"]},commercial_pkg:{name:"Commercial Package",icon:"\ud83c\udfe2",forms:"ACORD 125/126/140",sec:["applicant","agency","carrier","gl","cp","cu"]},commercial_auto:{name:"Commercial Auto",icon:"\ud83d\ude97",forms:"ACORD 137",sec:["applicant","agency","carrier","ca"]},workers_comp:{name:"Workers Comp",icon:"\ud83d\udc77",forms:"ACORD 130",sec:["applicant","agency","carrier","wc"]}};
+
+var S={
+applicant:{label:"Applicant Information",icon:"\ud83c\udfe2",fields:{named_insured:{l:"Named Insured",t:"text",a:"\u00a71",r:1},dba:{l:"DBA / Trade Name",t:"text",a:"\u00a71"},mailing_address:{l:"Mailing Address",t:"text",a:"\u00a71",r:1},city:{l:"City",t:"text",a:"\u00a71",r:1},state:{l:"State",t:"text",a:"\u00a71",r:1},zip:{l:"ZIP Code",t:"text",a:"\u00a71",r:1},phone:{l:"Phone",t:"text",a:"\u00a71"},email:{l:"Email",t:"text",a:"\u00a71"}}},
+agency:{label:"Agency / Producer",icon:"\ud83e\udd1d",fields:{agency_name:{l:"Agency Name",t:"text",a:"Header"},agency_code:{l:"Agency Code",t:"text",a:"Header"},producer_name:{l:"Producer Name",t:"text",a:"Header"},producer_email:{l:"Producer Email",t:"text",a:"Header"},producer_phone:{l:"Producer Phone",t:"text",a:"Header"}}},
+carrier:{label:"Carrier / Policy",icon:"\ud83d\udee1\ufe0f",fields:{carrier_name:{l:"Carrier Name",t:"text",a:"\u00a73",r:1},policy_number:{l:"Policy Number",t:"text",a:"\u00a73",r:1},effective_date:{l:"Effective Date",t:"text",a:"\u00a73",r:1},expiration_date:{l:"Expiration Date",t:"text",a:"\u00a73",r:1},policy_type:{l:"Policy Type",t:"text",a:"\u00a73"},naic_code:{l:"NAIC Code",t:"text",a:"\u00a73"}}},
+homeowner:{label:"Homeowners Property",icon:"\ud83c\udfe1",fields:{ho_form:{l:"Form Type (HO-3/HO-5)",t:"text",a:"ACORD 80"},ho_addr:{l:"Property Address",t:"text",a:"ACORD 80",r:1},ho_city:{l:"City",t:"text",a:"ACORD 80"},ho_state:{l:"State",t:"text",a:"ACORD 80"},ho_zip:{l:"ZIP",t:"text",a:"ACORD 80"},ho_county:{l:"County",t:"text",a:"ACORD 80"},ho_occ:{l:"Occupancy",t:"text",a:"ACORD 80"},ho_res:{l:"Residence Type",t:"text",a:"ACORD 80"},ho_yr:{l:"Year Built",t:"text",a:"ACORD 80"},ho_const:{l:"Construction",t:"text",a:"ACORD 80"},ho_stories:{l:"Stories",t:"text",a:"ACORD 80"},ho_sqft:{l:"Sq Ft",t:"text",a:"ACORD 80"},ho_roof:{l:"Roof Type",t:"text",a:"ACORD 80"},ho_roof_yr:{l:"Roof Year",t:"text",a:"ACORD 80"},ho_heat:{l:"Heating",t:"text",a:"ACORD 80"},ho_wire:{l:"Wiring",t:"text",a:"ACORD 80"},ho_plumb:{l:"Plumbing",t:"text",a:"ACORD 80"},ho_found:{l:"Foundation",t:"text",a:"ACORD 80"},ho_prot:{l:"Protection Class",t:"text",a:"ACORD 80"},ho_pool:{l:"Pool",t:"text",a:"ACORD 80"},ho_dog:{l:"Dog Breed",t:"text",a:"ACORD 80"},ho_prior:{l:"Prior Carrier",t:"text",a:"ACORD 80"},ho_claims:{l:"Claims (5 Yrs)",t:"textarea",a:"ACORD 80"}}},
+ho_cov:{label:"Homeowners Coverages",icon:"\ud83d\udd12",fields:{ho_a:{l:"Cov A - Dwelling",t:"text",a:"ACORD 80",r:1},ho_b:{l:"Cov B - Other Structures",t:"text",a:"ACORD 80"},ho_c:{l:"Cov C - Personal Property",t:"text",a:"ACORD 80"},ho_d:{l:"Cov D - Loss of Use",t:"text",a:"ACORD 80"},ho_e:{l:"Cov E - Liability",t:"text",a:"ACORD 80"},ho_f:{l:"Cov F - Medical",t:"text",a:"ACORD 80"},ho_ded:{l:"All Peril Deductible",t:"text",a:"ACORD 80"},ho_wind:{l:"Wind/Hail Ded",t:"text",a:"ACORD 80"},ho_hurr:{l:"Hurricane Ded",t:"text",a:"ACORD 80"},ho_flood:{l:"Flood (Y/N)",t:"text",a:"NFIP"},ho_fzone:{l:"Flood Zone",t:"text",a:"NFIP"},ho_water:{l:"Water Backup",t:"text",a:"ACORD 80"},ho_ord:{l:"Ordinance/Law",t:"text",a:"ACORD 80"},ho_repl:{l:"Replacement Cost",t:"text",a:"ACORD 80"},ho_prem:{l:"Annual Premium",t:"text",a:"ACORD 80"}}},
+df:{label:"Dwelling Fire",icon:"\ud83d\udd25",fields:{df_addr:{l:"Property Address",t:"text",a:"ACORD 84",r:1},df_city:{l:"City",t:"text",a:"ACORD 84"},df_state:{l:"State",t:"text",a:"ACORD 84"},df_zip:{l:"ZIP",t:"text",a:"ACORD 84"},df_occ:{l:"Occupancy",t:"text",a:"ACORD 84"},df_yr:{l:"Year Built",t:"text",a:"ACORD 84"},df_const:{l:"Construction",t:"text",a:"ACORD 84"},df_dwell:{l:"Dwelling Limit",t:"text",a:"ACORD 84",r:1},df_oth:{l:"Other Structures",t:"text",a:"ACORD 84"},df_pp:{l:"Personal Property",t:"text",a:"ACORD 84"},df_liab:{l:"Liability",t:"text",a:"ACORD 84"},df_med:{l:"Medical",t:"text",a:"ACORD 84"},df_ded:{l:"Deductible",t:"text",a:"ACORD 84"},df_prem:{l:"Premium",t:"text",a:"ACORD 84"}}},
+pa:{label:"Personal Auto",icon:"\ud83d\ude99",fields:{pa_v1y:{l:"Vehicle 1 Year",t:"text",a:"ACORD 90"},pa_v1m:{l:"Vehicle 1 Make",t:"text",a:"ACORD 90"},pa_v1mod:{l:"Vehicle 1 Model",t:"text",a:"ACORD 90"},pa_v1vin:{l:"Vehicle 1 VIN",t:"text",a:"ACORD 90"},pa_v2y:{l:"Vehicle 2 Year",t:"text",a:"ACORD 90"},pa_v2m:{l:"Vehicle 2 Make",t:"text",a:"ACORD 90"},pa_v2mod:{l:"Vehicle 2 Model",t:"text",a:"ACORD 90"},pa_v2vin:{l:"Vehicle 2 VIN",t:"text",a:"ACORD 90"},pa_bi:{l:"Bodily Injury",t:"text",a:"ACORD 90"},pa_pd:{l:"Property Damage",t:"text",a:"ACORD 90"},pa_csl:{l:"Combined Single Limit",t:"text",a:"ACORD 90"},pa_um:{l:"UM Bodily Injury",t:"text",a:"ACORD 90"},pa_uim:{l:"UIM Bodily Injury",t:"text",a:"ACORD 90"},pa_med:{l:"Medical/PIP",t:"text",a:"ACORD 90"},pa_comp:{l:"Comp Deductible",t:"text",a:"ACORD 90"},pa_coll:{l:"Collision Deductible",t:"text",a:"ACORD 90"},pa_rent:{l:"Rental Reimb",t:"text",a:"ACORD 90"},pa_tow:{l:"Towing",t:"text",a:"ACORD 90"},pa_prem:{l:"Annual Premium",t:"text",a:"ACORD 90"}}},
+pa_drv:{label:"Drivers",icon:"\ud83e\udea3",fields:{dr1n:{l:"Driver 1 Name",t:"text",a:"ACORD 90"},dr1dob:{l:"Driver 1 DOB",t:"text",a:"ACORD 90"},dr1lic:{l:"Driver 1 License #",t:"text",a:"ACORD 90"},dr1st:{l:"Driver 1 State",t:"text",a:"ACORD 90"},dr2n:{l:"Driver 2 Name",t:"text",a:"ACORD 90"},dr2dob:{l:"Driver 2 DOB",t:"text",a:"ACORD 90"},dr2lic:{l:"Driver 2 License #",t:"text",a:"ACORD 90"},viol:{l:"Violations (3 Yrs)",t:"textarea",a:"ACORD 90"},sr22:{l:"SR-22",t:"text",a:"ACORD 90"}}},
+pu:{label:"Personal Umbrella",icon:"\ud83c\udf02",fields:{pu_occ:{l:"Each Occurrence",t:"text",a:"ACORD 83"},pu_agg:{l:"Aggregate",t:"text",a:"ACORD 83"},pu_ret:{l:"Retention/SIR",t:"text",a:"ACORD 83"},pu_uauto:{l:"Underlying Auto",t:"text",a:"ACORD 83"},pu_uhome:{l:"Underlying Home",t:"text",a:"ACORD 83"},pu_prem:{l:"Premium",t:"text",a:"ACORD 83"}}},
+wt:{label:"Watercraft",icon:"\u26f5",fields:{wt_yr:{l:"Year",t:"text",a:"ACORD 82"},wt_make:{l:"Make",t:"text",a:"ACORD 82"},wt_mod:{l:"Model",t:"text",a:"ACORD 82"},wt_len:{l:"Length",t:"text",a:"ACORD 82"},wt_hin:{l:"Hull ID",t:"text",a:"ACORD 82"},wt_val:{l:"Value",t:"text",a:"ACORD 82"},wt_hp:{l:"HP",t:"text",a:"ACORD 82"},wt_liab:{l:"Liability",t:"text",a:"ACORD 82"},wt_ded:{l:"Deductible",t:"text",a:"ACORD 82"},wt_prem:{l:"Premium",t:"text",a:"ACORD 82"}}},
+mh:{label:"Mobile Home",icon:"\ud83c\udfe0",fields:{mh_addr:{l:"Location",t:"text",a:"ACORD 85"},mh_yr:{l:"Year",t:"text",a:"ACORD 85"},mh_make:{l:"Make",t:"text",a:"ACORD 85"},mh_ser:{l:"Serial #",t:"text",a:"ACORD 85"},mh_dwell:{l:"Dwelling Limit",t:"text",a:"ACORD 85"},mh_pp:{l:"Personal Property",t:"text",a:"ACORD 85"},mh_liab:{l:"Liability",t:"text",a:"ACORD 85"},mh_ded:{l:"Deductible",t:"text",a:"ACORD 85"},mh_prem:{l:"Premium",t:"text",a:"ACORD 85"}}},
+va:{label:"Valuable Articles",icon:"\ud83d\udc8e",fields:{va_jew:{l:"Jewelry Value",t:"text",a:"ACORD 81"},va_art:{l:"Fine Art",t:"text",a:"ACORD 81"},va_fire:{l:"Firearms",t:"text",a:"ACORD 81"},va_inst:{l:"Musical Instruments",t:"text",a:"ACORD 81"},va_coll:{l:"Collectibles",t:"text",a:"ACORD 81"},va_ded:{l:"Deductible",t:"text",a:"ACORD 81"},va_prem:{l:"Premium",t:"text",a:"ACORD 81"}}},
+gl:{label:"General Liability",icon:"\u2696\ufe0f",fields:{gl_occ:{l:"Each Occurrence",t:"text",a:"ACORD 125"},gl_agg:{l:"General Aggregate",t:"text",a:"ACORD 125"},gl_prod:{l:"Products/Comp Ops",t:"text",a:"ACORD 125"},gl_pi:{l:"Personal & Adv Injury",t:"text",a:"ACORD 125"},gl_fire:{l:"Fire Damage",t:"text",a:"ACORD 125"},gl_med:{l:"Med Expense",t:"text",a:"ACORD 125"},gl_ded:{l:"Deductible",t:"text",a:"ACORD 126"},gl_prem:{l:"Premium",t:"text",a:"ACORD 126"}}},
+cp:{label:"Commercial Property",icon:"\ud83c\udfe0",fields:{cp_loc:{l:"Location",t:"text",a:"ACORD 140"},cp_bldg:{l:"Building Value",t:"text",a:"ACORD 140"},cp_bpp:{l:"BPP",t:"text",a:"ACORD 140"},cp_bi:{l:"Business Income",t:"text",a:"ACORD 140"},cp_ded:{l:"Deductible",t:"text",a:"ACORD 140"},cp_prem:{l:"Premium",t:"text",a:"ACORD 140"}}},
+ca:{label:"Commercial Auto",icon:"\ud83d\ude97",fields:{ca_csl:{l:"CSL Limit",t:"text",a:"ACORD 137"},ca_um:{l:"UM/UIM",t:"text",a:"ACORD 137"},ca_comp:{l:"Comp Ded",t:"text",a:"ACORD 137"},ca_coll:{l:"Collision Ded",t:"text",a:"ACORD 137"},ca_veh:{l:"# Vehicles",t:"text",a:"ACORD 137"},ca_prem:{l:"Premium",t:"text",a:"ACORD 137"}}},
+wc:{label:"Workers Compensation",icon:"\ud83d\udc77",fields:{wc_st:{l:"State",t:"text",a:"ACORD 130"},wc_ea:{l:"EL Each Accident",t:"text",a:"ACORD 130"},wc_de:{l:"EL Disease Each",t:"text",a:"ACORD 130"},wc_dp:{l:"EL Disease Policy",t:"text",a:"ACORD 130"},wc_cc:{l:"Class Code",t:"text",a:"ACORD 130"},wc_mod:{l:"Experience Mod",t:"text",a:"ACORD 130"},wc_pay:{l:"Est. Payroll",t:"text",a:"ACORD 130"},wc_prem:{l:"Premium",t:"text",a:"ACORD 130"}}},
+cu:{label:"Commercial Umbrella",icon:"\u2602\ufe0f",fields:{cu_occ:{l:"Each Occurrence",t:"text",a:"ACORD 125"},cu_agg:{l:"Aggregate",t:"text",a:"ACORD 125"},cu_ret:{l:"Retention/SIR",t:"text",a:"ACORD 125"},cu_prem:{l:"Premium",t:"text",a:"ACORD 125"}}}
+};
+
+/* ============================================
+   APP STATE & LOB GRID
+   ============================================ */
+
+var selLOB=null,actSec=[],allK=[],formData={},files=[],expanded={};
+var lg=document.getElementById('lobGrid');
+Object.entries(LOBS).forEach(function(e){var k=e[0],v=e[1],d=document.createElement('div');d.className='lob-card';d.innerHTML='<div class="ico">'+v.icon+'</div><div class="nm">'+v.name+'</div><div class="fm">'+v.forms+'</div>';d.onclick=function(){document.querySelectorAll('.lob-card').forEach(function(c){c.classList.remove('sel')});d.classList.add('sel');selLOB=k;document.getElementById('lobNext').disabled=false};lg.appendChild(d)});
+
+/* ============================================
+   NAVIGATION
+   ============================================ */
+
+function goStep1(){document.getElementById('step1').style.display='';document.getElementById('step2').style.display='none';document.getElementById('step3').style.display='none';document.getElementById('hdrT').textContent='Select Line of Business';document.getElementById('hdrB').innerHTML=''}
+function goStep2(){if(!selLOB)return;var l=LOBS[selLOB];actSec=l.sec;allK=[];actSec.forEach(function(s){Object.keys(S[s].fields).forEach(function(k){allK.push(k)})});document.getElementById('step1').style.display='none';document.getElementById('step2').style.display='';document.getElementById('step3').style.display='none';document.getElementById('hdrT').textContent=l.name;document.getElementById('s2t').textContent='Upload '+l.name+' Documents';document.getElementById('s2s').textContent='AI extracts fields for '+l.forms;document.getElementById('hdrB').innerHTML='<button class="btn btn-o btn-sm" onclick="goStep1()">Change</button>';setupUp()}
+function goStep3(){document.getElementById('step1').style.display='none';document.getElementById('step2').style.display='none';document.getElementById('step3').style.display='';document.getElementById('hdrT').textContent='Review - '+LOBS[selLOB].name;document.getElementById('hdrB').innerHTML='<button class="btn btn-o btn-sm" onclick="goStep2()">Back</button>';renderReview()}
+
+/* ============================================
+   FILE UPLOAD
+   ============================================ */
+
+function setupUp(){var uz=document.getElementById('upZone'),fi=document.getElementById('fileIn');uz.onclick=function(){fi.click()};uz.ondragover=function(e){e.preventDefault();uz.classList.add('on')};uz.ondragleave=function(){uz.classList.remove('on')};uz.ondrop=function(e){e.preventDefault();uz.classList.remove('on');addF(e.dataTransfer.files)};fi.onchange=function(e){addF(e.target.files);e.target.value=''}}
+function addF(fl){var ok=Array.from(fl).filter(function(f){return f.type==='application/pdf'||f.type.indexOf('image/')===0||f.type.indexOf('text/')===0||/\.(eml|msg|csv|txt)$/i.test(f.name)});if(ok.length){files=files.concat(ok);renderChips();hideErr()}else showErr('Unsupported file type')}
+function removeF(i){files.splice(i,1);renderChips()}
+function renderChips(){document.getElementById('chips').innerHTML=files.map(function(f,i){return'<div class="chip">'+f.name+' <button class="x" onclick="removeF('+i+')">x</button></div>'}).join('')}
+function showErr(m){var e=document.getElementById('errBox');e.textContent=m;e.style.display='block'}
+function hideErr(){document.getElementById('errBox').style.display='none'}
+function readB64(f){return new Promise(function(r,j){var x=new FileReader();x.onload=function(){r(x.result.split(',')[1])};x.onerror=j;x.readAsDataURL(f)})}
+function readTxt(f){return new Promise(function(r,j){var x=new FileReader();x.onload=function(){r(x.result)};x.onerror=j;x.readAsText(f)})}
+
+/* ============================================
+   AI EXTRACTION (uses saved key from browser)
+   ============================================ */
+
+function doExtract(){
+var paste=document.getElementById('pasteBox').value.trim();
+if(!files.length&&!paste){showErr('Upload files or paste text.');return}
+
+var key=getSavedKey();
+if(!isValidKey(key)){
+showErr('No API key found. Click "Change key" at the top to set one up.');
+return;
+}
+
+hideErr();
+var pb=document.getElementById('progBar'),eb=document.getElementById('extractBtn');
+pb.style.display='block';eb.disabled=true;eb.textContent='Extracting...';
+var pct=0,iv=setInterval(function(){pct=Math.min(pct+Math.random()*10,92);document.getElementById('progFill').style.width=Math.round(pct)+'%';document.getElementById('progPct').textContent=Math.round(pct)+'%';document.getElementById('progLbl').textContent=pct<30?'Reading...':pct<60?'AI analyzing...':'Mapping fields...'},500);
+
+var content=[],chain=Promise.resolve();
+files.forEach(function(f){chain=chain.then(function(){
+if(f.type.indexOf('image/')===0)return readB64(f).then(function(b){content.push({type:'image',source:{type:'base64',media_type:f.type==='image/jpg'?'image/jpeg':f.type,data:b}});content.push({type:'text',text:'[Image: '+f.name+']'})});
+else if(f.type==='application/pdf')return readB64(f).then(function(b){content.push({type:'document',source:{type:'base64',media_type:'application/pdf',data:b}});content.push({type:'text',text:'[PDF: '+f.name+']'})});
+else return readTxt(f).then(function(t){content.push({type:'text',text:'--- '+f.name+' ---\n'+t})})
+})});
+
+chain.then(function(){
+if(paste)content.push({type:'text',text:'--- Pasted ---\n'+paste});
+content.push({type:'text',text:'Extract all insurance data. Return ONLY valid JSON with these keys (empty string if missing): '+JSON.stringify(allK)});
+return fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:4000,system:'You extract insurance data. Return ONLY valid JSON. No markdown. Empty string for missing.',messages:[{role:'user',content:content}]})})
+}).then(function(res){
+if(!res.ok)return res.json().then(function(e){throw new Error(e.error?e.error.message:'Error '+res.status)});
+return res.json()
+}).then(function(data){
+var txt=data.content.map(function(b){return b.text||''}).join('');
+formData=JSON.parse(txt.replace(/```json\s*/g,'').replace(/```\s*/g,'').trim());
+clearInterval(iv);
+document.getElementById('progFill').style.width='100%';
+document.getElementById('progPct').textContent='100%';
+document.getElementById('progLbl').textContent='Done!';
+expanded={};actSec.forEach(function(s){if(Object.keys(S[s].fields).some(function(k){return formData[k]&&String(formData[k]).trim()}))expanded[s]=true});
+setTimeout(goStep3,500)
+}).catch(function(e){
+clearInterval(iv);
+showErr('Failed: '+e.message);
+pb.style.display='none'
+}).finally(function(){
+eb.disabled=false;eb.textContent='Extract & Fill ACORD Fields'
+});
+}
+
+/* ============================================
+   REVIEW & RENDER
+   ============================================ */
+
+function fc(){return allK.filter(function(k){return formData[k]&&String(formData[k]).trim()}).length}
+function sf(s){return Object.keys(S[s].fields).filter(function(k){return formData[k]&&String(formData[k]).trim()}).length}
+function renderReview(){var filled=fc(),tot=allK.length,pct=Math.round(filled/tot*100),conf=filled>20?'High':filled>8?'Medium':'Low',cc=filled>20?'var(--green)':filled>8?'var(--yellow)':'var(--red)';document.getElementById('statsBar').innerHTML='<div class="st"><div class="v">'+filled+'/'+tot+'</div><div class="l">Fields</div></div><div class="st"><div class="v">'+pct+'%</div><div class="l">Complete</div></div><div class="st"><div class="v" style="color:'+cc+'">'+conf+'</div><div class="l">Confidence</div></div><div class="st"><div class="v">'+LOBS[selLOB].forms+'</div><div class="l">Form</div></div>';document.getElementById('sections').innerHTML=actSec.map(function(sKey){var sec=S[sKey],sfc=sf(sKey),st=Object.keys(sec.fields).length,isO=expanded[sKey],flds='';if(isO)Object.entries(sec.fields).forEach(function(e){var fk=e[0],fd=e[1],v=formData[fk]||'',inp;if(fd.t==='textarea')inp='<textarea class="fi" onchange="formData[\''+fk+'\']=this.value">'+v+'</textarea>';else inp='<input class="fi" value="'+(v||'').replace(/"/g,'&quot;')+'" onchange="formData[\''+fk+'\']=this.value"/>';flds+='<div class="fr"><div class="fl">'+fd.l+(fd.r?'<span class="rq">*</span>':'')+'</div>'+inp+'<div class="fref">'+fd.a+'</div></div>'});return'<div class="acc"><button class="acc-h" onclick="expanded[\''+sKey+'\']=!expanded[\''+sKey+'\'];renderReview()"><div class="lt"><span class="arr '+(isO?'open':'')+'">&#9654;</span><span style="font-size:16px">'+sec.icon+'</span><span class="tt">'+sec.label+'</span></div><span class="badge '+(sfc>0?'badge-g':'badge-d')+'">'+sfc+'/'+st+'</span></button>'+(isO?'<div class="acc-b">'+flds+'</div>':'')+'</div>'}).join('')}
+
+/* ============================================
+   PRINT / EXPORT
+   ============================================ */
+
+function doPrint(){var filled=fc(),tot=allK.length,pct=Math.round(filled/tot*100),now=new Date(),ds=now.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}),ts=now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}),ins=formData.named_insured||'N/A',pol=formData.policy_number||'N/A',car=formData.carrier_name||'N/A',eff=formData.effective_date||'N/A',exp=formData.expiration_date||'N/A',lob=LOBS[selLOB];var h='<div style="text-align:center;border-bottom:3px solid #1a365d;padding-bottom:12px;margin-bottom:18px"><h1 style="font-size:20px;color:#1a365d;margin:0 0 4px">'+lob.name+' \u2014 ACORD Data Extraction</h1><div style="font-size:12px;color:#555">'+ins+' | Policy: '+pol+'</div><div style="font-size:9px;color:#888;margin-top:3px">'+ds+' '+ts+' | Carrier: '+car+' | '+eff+' to '+exp+' | '+lob.forms+'</div></div>';h+='<table style="width:100%;margin-bottom:16px;border-collapse:collapse"><tr><td style="text-align:center;padding:8px;border:1px solid #ddd;width:33%"><b style="font-size:18px;color:#1a365d">'+filled+'/'+tot+'</b><br><span style="font-size:8px;color:#777">FIELDS</span></td><td style="text-align:center;padding:8px;border:1px solid #ddd;width:33%"><b style="font-size:18px;color:#1a365d">'+pct+'%</b><br><span style="font-size:8px;color:#777">COMPLETE</span></td><td style="text-align:center;padding:8px;border:1px solid #ddd;width:33%"><b style="font-size:18px;color:#1a365d">'+(filled>20?'High':filled>8?'Medium':'Low')+'</b><br><span style="font-size:8px;color:#777">CONFIDENCE</span></td></tr></table>';actSec.forEach(function(sKey){var sec=S[sKey],sFields=Object.entries(sec.fields),sfc=sFields.filter(function(e){return formData[e[0]]&&String(formData[e[0]]).trim()}).length;if(sfc===0)return;h+='<div style="margin-bottom:12px;page-break-inside:avoid"><div style="font-size:12px;font-weight:700;color:#1a365d;border-bottom:2px solid #2563eb;padding-bottom:3px;margin-bottom:5px">'+sec.label+' ('+sfc+'/'+sFields.length+')</div><table style="width:100%;border-collapse:collapse"><tr><th style="text-align:left;padding:4px 8px;background:#f0f4f8;color:#1a365d;font-size:9px;font-weight:600;border:1px solid #d0d5dd;width:38%">Field</th><th style="text-align:left;padding:4px 8px;background:#f0f4f8;color:#1a365d;font-size:9px;font-weight:600;border:1px solid #d0d5dd">Value</th><th style="text-align:left;padding:4px 8px;background:#f0f4f8;color:#1a365d;font-size:9px;font-weight:600;border:1px solid #d0d5dd;width:14%">Ref</th></tr>';sFields.forEach(function(e){var fk=e[0],fd=e[1],v=formData[fk]||'',d=v.trim()||'\u2014',st=v.trim()?'font-weight:500':'color:#bbb;font-style:italic';h+='<tr><td style="padding:4px 8px;border:1px solid #d0d5dd;font-size:10px">'+fd.l+'</td><td style="padding:4px 8px;border:1px solid #d0d5dd;font-size:10px;'+st+'">'+d+'</td><td style="padding:4px 8px;border:1px solid #d0d5dd;font-size:8px;color:#999">'+fd.a+'</td></tr>'});h+='</table></div>'});h+='<div style="margin-top:20px;border-top:1px solid #ccc;padding-top:8px;font-size:8px;color:#999;text-align:center">ACORD Data Extraction Report. Verify all fields before binding.</div>';document.getElementById('printReport').innerHTML=h;window.print()}
+
+function expCSV(){var rows=[['Field','Value','Ref']];actSec.forEach(function(s){Object.entries(S[s].fields).forEach(function(e){rows.push([e[1].l,formData[e[0]]||'',e[1].a])})});var csv=rows.map(function(r){return r.map(function(c){return'"'+String(c).replace(/"/g,'""')+'"'}).join(',')}).join('\n');dl(csv,'acord-data.csv','text/csv')}
+function expJSON(){dl(JSON.stringify(formData,null,2),'acord-data.json','application/json')}
+function cpAll(){var lines=[];actSec.forEach(function(s){lines.push('\n=== '+S[s].label+' ===');Object.entries(S[s].fields).forEach(function(e){var v=formData[e[0]];if(v&&v.trim())lines.push(e[1].l+': '+v)})});navigator.clipboard.writeText(lines.join('\n')).then(function(){alert('Copied!')})}
+function dl(c,n,m){var b=new Blob([c],{type:m}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=n;a.click();URL.revokeObjectURL(u)}
+</script>
+</body>
+</html>

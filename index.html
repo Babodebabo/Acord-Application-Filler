@@ -279,7 +279,7 @@ async function runExtraction(){
       throw new Error('Could not start extraction (server '+startResp.status+'): '+t.slice(0,200));
     }
 
-    let tries=0; const maxTries=45;
+    let tries=0; const maxTries=150;
     let resultMapping=null, resultErr=null;
     while(tries<maxTries){
       await new Promise(res=>setTimeout(res,2000));
